@@ -1,9 +1,9 @@
 name: RealEstate
 main: me.EtienneDx.RealEstate.RealEstate
 version: ${project.version}
-authors: [EtienneDx, DmitryRendov]
+authors: [EtienneDx, DmitryRendov, FamousLongwing]
 depend: [Vault, GriefPrevention]
-api-version: "1.18"
+api-version: "1.20"
 
 commands:
   re:
