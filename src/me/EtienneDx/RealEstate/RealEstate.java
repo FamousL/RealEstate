@@ -86,9 +86,11 @@ public class RealEstate extends JavaPlugin
                 return;
             }
         }
-        if((ess = (Essentials)getServer().getPluginManager().getPlugin("Essentials")) != null)
+        if(getServer().getPluginManager().getPlugin("Essentials") != null)
         {
-        	this.log.info("Found Essentials, using version " + ess.getDescription().getVersion());
+        	org.bukkit.plugin.Plugin ess=getServer().getPluginManager().getPlugin("Essentials");
+		
+		this.log.info("Found Essentials, using version " + ess.getDescription().getVersion());
         }
         this.config = new Config();
         this.config.loadConfig();// loads config or default
