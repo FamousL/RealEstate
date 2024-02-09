@@ -12,4 +12,4 @@ This plugin is dependent on GriefPrevention version 16.18 and up.
 
 GriefPrevention plugin can be found [here](https://github.com/TechFortress/GriefPrevention)
 
-~This is just an update to work with 1.20.4, I am not the originator of most of the work in this plugin.~
+This is just an update to work with 1.20.4, I am not the originator of most of the work in this plugin.
