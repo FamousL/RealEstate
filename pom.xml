@@ -2,9 +2,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>Me.EtienneDx</groupId>
+	<groupId>FamousL</groupId>
 	<artifactId>real-estate</artifactId>
-	<version>1.4.1</version>
+	<version>1.0</version>
 	<name>RealEstate</name>
 	<description>A spigot plugin for selling, renting and leasing GriefPrevention claims</description>
 	<build>
@@ -47,7 +47,7 @@
 							</excludes>
 						</filter>
 					</filters>
-                    <relocations>
+			<relocations>
                         <relocation>
                             <pattern>co.aikar.commands</pattern>
                             <shadedPattern>me.EtienneDx.RealEstate.acf</shadedPattern>
@@ -56,8 +56,9 @@
                             <pattern>me.EtienneDx.AnnotationConfig</pattern>
                             <shadedPattern>me.EtienneDx.RealEstate.AnnotationConfig</shadedPattern>
                         </relocation>
-                    </relocations>
-                </configuration>
+                    </relocations>		
+		</configuration>
+
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -114,12 +115,12 @@
 		<repository>
 	        <id>aikar</id>
 	        <url>https://repo.aikar.co/content/groups/aikar/</url>
-    	</repository>
-    	<!-- EssentialsX repo -->
-    	<repository>
-	        <id>ess-repo</id>
-	        <url>https://ci.ender.zone/plugin/repository/everything/</url>
-	    </repository>
+	</repository>
+	<repository>
+		<id>essentialsx</id>
+		<name>EssentialsX API Repository</name>
+		<url>https://repo.essentialsx.net/releases</url>
+	</repository>
 	</repositories>
 	<pluginRepositories>
 		<pluginRepository>
@@ -131,7 +132,7 @@
 		<dependency>
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
-			<version>1.18.1-R0.1-SNAPSHOT</version>
+			<version>1.20.4-R0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -146,21 +147,23 @@
 	        <version>0.5.0-SNAPSHOT</version>
 	    </dependency>
 	    <dependency>
-	        <groupId>net.ess3</groupId>
-	        <artifactId>EssentialsX</artifactId>
-	        <version>2.16.1</version>
-	        <scope>provided</scope>
-	    </dependency>
+		<groupId>net.essentialsx</groupId>
+		<artifactId>EssentialsX</artifactId>
+		<version>2.20.1</version>
+		</dependency>
+
 	    <dependency>
 		    <groupId>com.github.TechFortress</groupId>
 		    <artifactId>GriefPrevention</artifactId>
-		    <version>16.18</version>
+		    <version>16.18.1</version>
 		    <scope>provided</scope>
-		</dependency>
-	    <dependency>
+	    </dependency>
+    	    <dependency>
 		    <groupId>com.github.EtienneDx</groupId>
 		    <artifactId>AnnotationConfig</artifactId>
 		    <version>e9eab24</version>
-		</dependency>
+	</dependency>
 	</dependencies>
+
 </project>
+
