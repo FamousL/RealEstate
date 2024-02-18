@@ -100,7 +100,6 @@ public class RealEstate extends JavaPlugin
 		this.messages.loadConfig();// loads customizable messages or defaults
 		this.messages.saveConfig();// save eventual default
 		this.log.info("Customizable messages loaded.");
-
         ConfigurationSerialization.registerClass(ClaimSell.class);
         ConfigurationSerialization.registerClass(ClaimRent.class);
         ConfigurationSerialization.registerClass(ClaimLease.class);
