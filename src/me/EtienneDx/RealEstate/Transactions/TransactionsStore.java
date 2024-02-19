@@ -175,7 +175,23 @@ public class TransactionsStore
 		}
 		saveData();
 	}
+	public void kickTransaction (Transaction tr)
+	{
+                if(tr instanceof ClaimSell)
+                {
+                        tr.update();
+                }
+                if(tr instanceof ClaimRent)
+                {
+                        tr.update();
+                }
+                if(tr instanceof ClaimLease)
+                {
+                        tr.update();
+                }
+
 	
+	}	
 	public boolean canCancelTransaction(Transaction tr)
 	{
 		return tr instanceof ClaimSell || (tr instanceof ClaimRent && ((ClaimRent)tr).buyer == null) || 
@@ -227,6 +243,7 @@ public class TransactionsStore
 
 	public void rent(Claim claim, Player player, double price, Location sign, int duration, int rentPeriods, boolean buildTrust)
 	{
+		
 		ClaimRent cr = new ClaimRent(claim, claim.isAdminClaim() ? null : player, price, sign, duration, rentPeriods, buildTrust);
 		claimRent.put(claim.getID().toString(), cr);
 		cr.update();

@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -29,7 +30,6 @@ public class REListener implements Listener
 		pm.registerEvents(this, RealEstate.instance);
 		//RealEstate.instance.getCommand("re").setExecutor(this);
 	}
-
 	@EventHandler
 	public void onSignChange(SignChangeEvent event)
 	{
@@ -40,7 +40,6 @@ public class REListener implements Listener
 		{
 			Player player = event.getPlayer();
 			Location loc = event.getBlock().getLocation();
-
 			Claim claim = GriefPrevention.instance.dataStore.getClaimAt(loc, false, null);
 			if(claim == null)// must have something to sell
 			{
@@ -259,6 +258,7 @@ public class REListener implements Listener
 				event.setCancelled(true);
 				RealEstate.transactionsStore.rent(claim, player, price, event.getBlock().getLocation(), duration, rentPeriods,
 						RealEstate.instance.config.cfgRentKeywords.contains(event.getLine(0).toLowerCase()));
+
 			}
 			else if(RealEstate.instance.config.cfgLeaseKeywords.contains(event.getLine(0).toLowerCase()))// we want to rent it
 			{
@@ -364,6 +364,17 @@ public class REListener implements Listener
 				event.setCancelled(true);
 				RealEstate.transactionsStore.lease(claim, player, price, event.getBlock().getLocation(), frequency, paymentsCount);
 			}
+			RealEstate.instance.getServer().getScheduler().scheduleSyncDelayedTask(RealEstate.instance, new Runnable() {
+                        @Override
+                        public void run() {
+                        //in short we want to have the transaction update here...
+			//
+				Transaction tr = RealEstate.transactionsStore.getTransaction(claim);
+				RealEstate.transactionsStore.kickTransaction(tr);
+			
+			}
+
+                    });
 		}
 	}
 
