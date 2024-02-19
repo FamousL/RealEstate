@@ -54,7 +54,8 @@ public class ClaimPermissionListener implements Listener {
             }
         }
 
-        if(event.getRequiredPermission() == ClaimPermission.Edit || event.getRequiredPermission() == ClaimPermission.Manage) {
+        //if(event.getRequiredPermission() == ClaimPermission.Edit || event.getRequiredPermission() == ClaimPermission.Manage) {
+        if(event.getRequiredPermission() == ClaimPermission.Edit) {
             for (Claim child : event.getClaim().children) {
                 Transaction tr = RealEstate.transactionsStore.getTransaction(child);
                 if(tr != null && 
