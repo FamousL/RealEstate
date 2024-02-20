@@ -45,6 +45,7 @@ public class RealEstate extends JavaPlugin
     BukkitCommandManager manager;
 	public final static String pluginDirPath = "plugins" + File.separator + "RealEstate" + File.separator;
 	final static String languagesDirectory = RealEstate.pluginDirPath + "languages";
+	final static String schematicDirectory = RealEstate.pluginDirPath + "schematics";
     public static boolean vaultPresent = false;
     public static boolean worldEditPresent = false;
     public static Economy econ = null;
