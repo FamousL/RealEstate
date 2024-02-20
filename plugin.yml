@@ -3,6 +3,7 @@ main: me.EtienneDx.RealEstate.RealEstate
 version: ${project.version}
 authors: [EtienneDx, DmitryRendov, FamousLongwing]
 depend: [Vault, GriefPrevention]
+softdepend: [WorldEdit]
 api-version: "1.20"
 
 commands:

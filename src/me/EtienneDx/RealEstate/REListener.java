@@ -409,6 +409,7 @@ public class REListener implements Listener
 		if(event.getAction().equals(Action.RIGHT_CLICK_BLOCK) && event.getHand().equals(EquipmentSlot.HAND) &&
 				event.getClickedBlock().getState() instanceof Sign)
 		{
+			
 			Sign sign = (Sign)event.getClickedBlock().getState();
 			RealEstate.instance.log.info(sign.getLine(0));
 			// it is a real estate sign
@@ -427,6 +428,7 @@ public class REListener implements Listener
 				}
 
 				Transaction tr = RealEstate.transactionsStore.getTransaction(claim);
+				
 				if(player.isSneaking())
 					tr.preview(player);
 				else

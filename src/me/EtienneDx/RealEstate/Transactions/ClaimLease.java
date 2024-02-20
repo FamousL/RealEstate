@@ -66,6 +66,7 @@ public class ClaimLease extends BoughtTransaction
 			if(sign.getBlock().getState() instanceof Sign)
 			{
 				Sign s = (Sign)sign.getBlock().getState();
+				s.setWaxed(true);
 				s.setLine(0, Messages.getMessage(RealEstate.instance.config.cfgSignsHeader, false));
 				s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceLease);
 				//s.setLine(2, owner != null ? Bukkit.getOfflinePlayer(owner).getName() : "SERVER");

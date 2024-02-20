@@ -1,5 +1,8 @@
 package me.EtienneDx.RealEstate.Transactions;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -7,7 +10,6 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -17,6 +19,23 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.earth2me.essentials.User;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.WorldEditException;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.BuiltInClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
+import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.session.ClipboardHolder;
 
 import me.EtienneDx.RealEstate.Messages;
 import me.EtienneDx.RealEstate.RealEstate;
@@ -58,6 +77,41 @@ public class ClaimRent extends BoughtTransaction
 		this.duration = duration;
 		this.maxPeriod = RealEstate.instance.config.cfgEnableRentPeriod ? rentPeriods : 1;
 		this.buildTrust = buildTrust;
+		//if worldedit saving is requested, here's where i think... to do it..
+		if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
+		{
+			if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
+			{
+				
+				Location lesser=claim.getLesserBoundaryCorner();
+				Location greater=claim.getGreaterBoundaryCorner();
+				CuboidRegion region = new CuboidRegion(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()),BlockVector3.at(greater.getX(),greater.getWorld().getMaxHeight(),greater.getZ()));
+				BlockArrayClipboard clipboard = new BlockArrayClipboard (region);
+				com.sk89q.worldedit.world.World adaptedworld= BukkitAdapter.adapt(lesser.getWorld());
+				EditSession editSession=WorldEdit.getInstance().newEditSession(adaptedworld);
+				ForwardExtentCopy CopyArea=new ForwardExtentCopy(editSession,region,clipboard,region.getMinimumPoint());
+				try {
+					Operations.complete(CopyArea);
+				} catch (WorldEditException e) {
+
+					RealEstate.instance.log.info("Failed to copy rental area, WorldEdit gives error: "+e.getMessage());
+				}
+				
+				
+				String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
+				File file = new File(schempath);
+				try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(file))) {
+					writer.write(clipboard);
+				}
+				catch (Exception e)
+				{
+					RealEstate.instance.log.info("Failed to copy rental area, Writing out schematic failed: "+e.getMessage());
+				}
+				
+			
+			}
+		
+		}		
 	}
 
 	@Override
@@ -83,6 +137,7 @@ public class ClaimRent extends BoughtTransaction
 			if(sign.getBlock().getState() instanceof Sign)
 			{
 				Sign s = (Sign) sign.getBlock().getState();
+				s.setWaxed(true);
 				s.setLine(0, Messages.getMessage(RealEstate.instance.config.cfgSignsHeader, false));
 				s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceRent);
 				//s.setLine(2, owner != null ? Bukkit.getOfflinePlayer(owner).getName() : "SERVER");
@@ -178,6 +233,45 @@ public class ClaimRent extends BoughtTransaction
 		}
 		buyer = null;
 		RealEstate.transactionsStore.saveData();
+		//if worldedit saving is requested, here's where i think... to do it..
+		if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
+		{
+			if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
+			{
+				//load schematic, paste where we got it.
+				String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
+				File file = new File(schempath);
+				Clipboard clipboard =null;
+				ClipboardFormat format= ClipboardFormats.findByFile(file);
+				try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+				    clipboard = reader.read();
+				}
+				catch (Exception e) 
+				{
+					RealEstate.instance.log.info("Failed to import previously saved schematic: "+e.getMessage());
+					update();
+					return;
+				}
+				Location lesser=claim.getLesserBoundaryCorner();
+				
+				com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(lesser.getWorld());
+				try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+				    Operation operation = new ClipboardHolder(clipboard)
+				            .createPaste(editSession)
+				            .to(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()))
+				            // configure here
+				            .build();
+				    Operations.complete(operation);
+				}
+				catch(Exception e)
+				{
+					RealEstate.instance.log.info("Failed to paste initial schematic: "+e.getMessage());
+					update();
+					return;
+					
+				}
+			}
+		}
 		update();
 	}
 

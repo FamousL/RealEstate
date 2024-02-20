@@ -46,6 +46,7 @@ public class RealEstate extends JavaPlugin
 	public final static String pluginDirPath = "plugins" + File.separator + "RealEstate" + File.separator;
 	final static String languagesDirectory = RealEstate.pluginDirPath + "languages";
     public static boolean vaultPresent = false;
+    public static boolean worldEditPresent = false;
     public static Economy econ = null;
     public static Permission perms = null;
     public static Essentials ess = null;
@@ -86,6 +87,13 @@ public class RealEstate extends JavaPlugin
                 return;
             }
         }
+	if (checkWorldEdit())
+	{
+		org.bukkit.plugin.Plugin WorldEditPlugin=getServer().getPluginManager().getPlugin("WorldEdit");
+		this.log.info("Found WorldEdit, using version "+WorldEditPlugin.getDescription().getVersion());
+
+	
+	}
         if(getServer().getPluginManager().getPlugin("Essentials") != null)
         {
         	org.bukkit.plugin.Plugin ess=getServer().getPluginManager().getPlugin("Essentials");
@@ -267,6 +275,11 @@ public class RealEstate extends JavaPlugin
         return vaultPresent;
     }
 
+    private boolean checkWorldEdit()
+    {
+    	worldEditPresent = getServer().getPluginManager().getPlugin("WorldEdit") !=null;
+	return worldEditPresent;
+    }
     private boolean setupEconomy()
     {
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
