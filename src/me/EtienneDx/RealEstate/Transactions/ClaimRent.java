@@ -77,41 +77,44 @@ public class ClaimRent extends BoughtTransaction
 		this.duration = duration;
 		this.maxPeriod = RealEstate.instance.config.cfgEnableRentPeriod ? rentPeriods : 1;
 		this.buildTrust = buildTrust;
-		//if worldedit saving is requested, here's where i think... to do it..
-		if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
+		if((claim.isAdminClaim()&&RealEstate.instance.config.RestoreAdminOnly)|| !RealEstate.instance.config.RestoreAdminOnly) //if we are in an admin claim *and* admin only is selected, or if admin only is false
 		{
-			if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
+			//if worldedit saving is requested, here's where i think... to do it..
+			if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
 			{
-				
-				Location lesser=claim.getLesserBoundaryCorner();
-				Location greater=claim.getGreaterBoundaryCorner();
-				CuboidRegion region = new CuboidRegion(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()),BlockVector3.at(greater.getX(),greater.getWorld().getMaxHeight(),greater.getZ()));
-				BlockArrayClipboard clipboard = new BlockArrayClipboard (region);
-				com.sk89q.worldedit.world.World adaptedworld= BukkitAdapter.adapt(lesser.getWorld());
-				EditSession editSession=WorldEdit.getInstance().newEditSession(adaptedworld);
-				ForwardExtentCopy CopyArea=new ForwardExtentCopy(editSession,region,clipboard,region.getMinimumPoint());
-				try {
-					Operations.complete(CopyArea);
-				} catch (WorldEditException e) {
-
-					RealEstate.instance.log.info("Failed to copy rental area, WorldEdit gives error: "+e.getMessage());
-				}
-				
-				
-				String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
-				File file = new File(schempath);
-				try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(file))) {
-					writer.write(clipboard);
-				}
-				catch (Exception e)
+				if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
 				{
-					RealEstate.instance.log.info("Failed to copy rental area, Writing out schematic failed: "+e.getMessage());
+				
+					Location lesser=claim.getLesserBoundaryCorner();
+					Location greater=claim.getGreaterBoundaryCorner();
+					CuboidRegion region = new CuboidRegion(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()),BlockVector3.at(greater.getX(),greater.getWorld().getMaxHeight(),greater.getZ()));
+					BlockArrayClipboard clipboard = new BlockArrayClipboard (region);
+					com.sk89q.worldedit.world.World adaptedworld= BukkitAdapter.adapt(lesser.getWorld());
+					EditSession editSession=WorldEdit.getInstance().newEditSession(adaptedworld);
+					ForwardExtentCopy CopyArea=new ForwardExtentCopy(editSession,region,clipboard,region.getMinimumPoint());
+					try {
+						Operations.complete(CopyArea);
+					} catch (WorldEditException e) {
+						
+						RealEstate.instance.log.info("Failed to copy rental area, WorldEdit gives error: "+e.getMessage());
+					}
+					
+					
+					String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
+					File file = new File(schempath);
+					try (ClipboardWriter writer = BuiltInClipboardFormat.SPONGE_SCHEMATIC.getWriter(new FileOutputStream(file))) {
+						writer.write(clipboard);
+					}
+					catch (Exception e)
+					{
+						RealEstate.instance.log.info("Failed to copy rental area, Writing out schematic failed: "+e.getMessage());
+					}
+					
+					
 				}
 				
-			
 			}
-		
-		}		
+		}
 	}
 
 	@Override
@@ -233,42 +236,45 @@ public class ClaimRent extends BoughtTransaction
 		}
 		buyer = null;
 		RealEstate.transactionsStore.saveData();
-		//if worldedit saving is requested, here's where i think... to do it..
-		if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
+		//if worldedit saving is requested, here's where i load the saved area
+		if((claim.isAdminClaim()&&RealEstate.instance.config.RestoreAdminOnly)|| !RealEstate.instance.config.RestoreAdminOnly) //if we are in an admin claim *and* admin only is selected, or if admin only is false
 		{
-			if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
+			if(RealEstate.instance.getServer().getPluginManager().getPlugin("WorldEdit")!=null) //is world edit installed?
 			{
-				//load schematic, paste where we got it.
-				String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
-				File file = new File(schempath);
-				Clipboard clipboard =null;
-				ClipboardFormat format= ClipboardFormats.findByFile(file);
-				try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-				    clipboard = reader.read();
-				}
-				catch (Exception e) 
+				if(RealEstate.instance.config.RestoreRentalState)//are we configured to use it?
 				{
-					RealEstate.instance.log.info("Failed to import previously saved schematic: "+e.getMessage());
-					update();
-					return;
-				}
-				Location lesser=claim.getLesserBoundaryCorner();
+					//load schematic, paste where we got it.
+					String schempath = RealEstate.pluginDirPath + "/schematics/"+claim.getID().toString()+".schem";
+					File file = new File(schempath);
+					Clipboard clipboard =null;
+					ClipboardFormat format= ClipboardFormats.findByFile(file);
+					try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+						clipboard = reader.read();
+					}
+					catch (Exception e) 
+					{
+						RealEstate.instance.log.info("Failed to import previously saved schematic: "+e.getMessage());
+						update();
+						return;
+					}
+					Location lesser=claim.getLesserBoundaryCorner();
 				
-				com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(lesser.getWorld());
-				try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
-				    Operation operation = new ClipboardHolder(clipboard)
-				            .createPaste(editSession)
-				            .to(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()))
-				            // configure here
-				            .build();
-				    Operations.complete(operation);
-				}
-				catch(Exception e)
-				{
-					RealEstate.instance.log.info("Failed to paste initial schematic: "+e.getMessage());
-					update();
-					return;
-					
+					com.sk89q.worldedit.world.World world = BukkitAdapter.adapt(lesser.getWorld());
+					try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+						Operation operation = new ClipboardHolder(clipboard)
+								.createPaste(editSession)
+								.to(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()))
+				            // 	configure here
+				            	.build();
+				    	Operations.complete(operation);
+					}
+					catch(Exception e)
+					{
+						RealEstate.instance.log.info("Failed to paste initial schematic: "+e.getMessage());
+						update();
+						return;
+						
+					}
 				}
 			}
 		}
