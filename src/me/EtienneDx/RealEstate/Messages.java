@@ -283,7 +283,7 @@ public class Messages extends AnnotationConfig
     public String msgInfoExitOfferCreatedByOther = "$a{0} $bhas created an offer to exit the transaction for the {1} at $a{3} $bfor $a{2}";
 
     @ConfigField(name="RealEstate.Info.ExitOffer.AcceptedBySelf", comment = "0: claim type, 1:formatted price")
-    public String msgInfoExitOfferAcceptedBySelf = "$bThe {0} is no longer rented or leased, you have been charged $a{1}";
+    public String msgInfoExitOfferAcceptedBySelf = "$bThe {0} is no longer rented or leased, you have been paid $a{1}";
 
     @ConfigField(name="RealEstate.Info.ExitOffer.AcceptedByOther", comment = "0: player name, 1: claim type, 2: formatted price, 3: claim location")
     public String msgInfoExitOfferAcceptedByOther = "$a{0} $bhas accepted the offer to exit the transaction for the {1} at $a{3} $bfor $a{2}. It is no longer leased or rented.";

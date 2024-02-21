@@ -309,6 +309,7 @@ public class RECommand extends BaseCommand
 				claim.dropPermission(bt.buyer.toString());
 				claim.managers.remove(bt.buyer.toString());
 				GriefPrevention.instance.dataStore.saveClaim(claim);
+				ClaimRent.restore_rental(claim);
 				bt.buyer = null;
 				bt.update();// eventual cancel is contained in here
 			}

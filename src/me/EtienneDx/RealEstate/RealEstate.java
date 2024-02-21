@@ -88,13 +88,19 @@ public class RealEstate extends JavaPlugin
                 return;
             }
         }
-	if (checkWorldEdit())
-	{
-		org.bukkit.plugin.Plugin WorldEditPlugin=getServer().getPluginManager().getPlugin("WorldEdit");
-		this.log.info("Found WorldEdit, using version "+WorldEditPlugin.getDescription().getVersion());
+        if (checkWorldEdit())
+        {
+        	org.bukkit.plugin.Plugin WorldEditPlugin=getServer().getPluginManager().getPlugin("WorldEdit");
+        	this.log.info("Found WorldEdit, using version "+WorldEditPlugin.getDescription().getVersion());
 
 	
-	}
+        }
+        if(getServer().getPluginManager().getPlugin("CoreProtect")!=null) 
+        {
+        	org.bukkit.plugin.Plugin cp=getServer().getPluginManager().getPlugin("CoreProtect");
+        	this.log.info("Found CoreProtect, using version"+cp.getDescription().getVersion());
+        	
+        }
         if(getServer().getPluginManager().getPlugin("Essentials") != null)
         {
         	org.bukkit.plugin.Plugin ess=getServer().getPluginManager().getPlugin("Essentials");
