@@ -3,23 +3,29 @@ package me.EtienneDx.RealEstate.Transactions;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import com.earth2me.essentials.User;
 import com.sk89q.worldedit.EditSession;
@@ -34,18 +40,15 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardWriter;
 import com.sk89q.worldedit.function.mask.BlockTypeMask;
-import com.sk89q.worldedit.function.mask.Mask;
-import com.sk89q.worldedit.function.mask.Masks;
 import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.session.ClipboardHolder;
-import com.sk89q.worldedit.world.block.BlockCategory;
-import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockType;
 
+import me.EtienneDx.RealEstate.AbandonedItems;
 import me.EtienneDx.RealEstate.Messages;
 import me.EtienneDx.RealEstate.RealEstate;
 import me.EtienneDx.RealEstate.Utils;
@@ -226,7 +229,105 @@ public class ClaimRent extends BoughtTransaction
 		return false;
 		
 	}
+	public void save_inventories(Claim claim,String mybuyer)
+	{
+		if(!RealEstate.instance.config.SaveInventory) {
+			return;
+					
+		}
+		String item_owner=mybuyer;//uuid saved when we started the transaction
+		//so now we need to scan through the entire claim, and find any inventory to save X.x
+		//get chunks within area, get inventories, check if inventory is within the bounds, then process.
+		List<Chunk> chunksToProcess=new ArrayList<Chunk>();
+		Location min=claim.getLesserBoundaryCorner();
+		Location max=claim.getGreaterBoundaryCorner();
+		World world=min.getWorld();
+		
+		List<Inventory> lifeboat=new ArrayList<Inventory>();
+		int invsize=0;
+		
+		for (double x=min.getX();x<max.getX();x+=16) {
+			for(double z=min.getZ();z<max.getZ();z+=16) 
+			{
+				
+			//	chunksToProcess.add(world.getChunkAt((int)x,(int)z));
+				//Chunk chunk=world.getChunkAt((int)x,(int)z);
+				Location current=new Location(max.getWorld(),x,0,z);
+				Chunk chunk=world.getChunkAt(current);
+				chunksToProcess.add(chunk);
+					
+			}
+			
+		}
+		//now we have all the chunks involved, now to find inventories...
+		AbandonedItems item_saver=new AbandonedItems(mybuyer);
+		for(Chunk chunk:chunksToProcess)
+		{
+			for(BlockState tileEntity:chunk.getTileEntities()) 
+			{
+				if (tileEntity.getX()>min.getX()&&tileEntity.getX()<max.getX()) 
+				{
+					if (tileEntity.getZ()>min.getZ()&&tileEntity.getZ()<max.getZ()) 
+					{
+						try 
+						{
+							if(tileEntity.getClass().getMethod("getInventory") != null) 
+							{
 
+								Method method= tileEntity.getClass().getMethod("getInventory");
+
+								Inventory found_inventory=(Inventory) method.invoke(tileEntity, null);
+								for(ItemStack j : found_inventory.getStorageContents()) 
+								{
+									if(j !=null) {
+								
+										item_saver.add_item(j);
+									}
+									else
+									{
+										continue;
+									}
+								}
+								//blow away the container after we save everything
+								
+								Location inventoryloc=tileEntity.getLocation();
+								
+								world.setType(inventoryloc, Material.AIR);
+								
+							}
+						} 
+						catch (Exception e) 
+						{
+							// TODO Auto-generated catch block
+							//RealEstate.instance.log.info("");
+							//nothing to do here, we know some of these are not going to have this method, we don't care.
+
+							RealEstate.instance.log.info("exception raised: "+e.getMessage());
+						}
+					}
+				}
+			}
+		}
+		item_saver.save();
+		//ok, so now i have an array list of inventories, and how many stacks of items we have.... now what?
+		//well bukkit needs a size that is a factor of 9, so next highest factor of 9?
+		/*
+		 * while((invsize %9)!=0) {
+		 * RealEstate.instance.log.info("Inventory size was only "
+		 * +invsize+" not divisible by 9, incrementing"); invsize++; //increase invsize
+		 * until it is divisible by 9 } //move everything into one inventory Inventory
+		 * saved_inventory=Bukkit.createInventory(null, invsize); for (Inventory
+		 * passengers:lifeboat) { for(ItemStack j:passengers.getStorageContents()) {
+		 * RealEstate.instance.log.info("Moving item stack of "+j.getType());
+		 * saved_inventory.addItem(j);
+		 * 
+		 * } }
+		 */
+		
+		
+		
+		
+	}
 	public static void restore_rental(Claim claim)
 	{
 		
@@ -300,8 +401,11 @@ public class ClaimRent extends BoughtTransaction
 					claimType,
 					location);
 		}
+		save_inventories(claim,buyer.toString());
 		buyer = null;
 		RealEstate.transactionsStore.saveData();
+		
+		
 		ClaimRent.restore_rental(claim);
 		update();
 	}

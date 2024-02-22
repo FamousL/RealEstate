@@ -426,7 +426,15 @@ public class Messages extends AnnotationConfig
     @ConfigField(name="RealEstate.List.NextPage", comment="0: all|sell|rent|lease; 1: next page number")
     public String msgListNextPage = "$6To see the next page, type $a/re list {0} {1}";
     
+    @ConfigField(name="RealEstate.Info.Claim.Purge.Availabe",comment="0: player name, there are items ready for you to claim")
+    public String msgItemsToClaim="$b There are items ready for you to claim use /re itemclam";
+    
+    @ConfigField(name="RealEstate.Info.Item.Saving.Disabled",comment="Saving items in expired rental claims is disabled.")
+    public String msgErrorSavingDisabled="$b Item Saving for rental properties is disabled";
 
+    @ConfigField(name="RealEstate.Info.Item.Saving.Empty",comment="all items have been claimed")
+    public String msgSaveHasNoItems="$b There were no items left in the save file!";
+    
     public Messages()
     {
         this.pdf = RealEstate.instance.getDescription();

@@ -107,6 +107,8 @@ public class Config extends AnnotationConfig
     @ConfigField(name="RealEstate.Settings.RestoreAdminClaimsOnly",comment="This setting will let us know if the rental areas should only be restored via WorldEdit if it is an admin claim, if true we will restore only admin claims, false will restore all claims (provided it is enabled by the previous setting)")
     public boolean RestoreAdminOnly=true;
     
+    @ConfigField(name="RealEstate.Settings.SaveInventory",comment="This setting lets me know whether rental properties should attempt to save inventories when they are reverted to original state")
+    public boolean SaveInventory=true;
     
     public Config()
     {

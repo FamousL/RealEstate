@@ -395,6 +395,16 @@ public class RECommand extends BaseCommand
 			}
 		}
 	}
+	@Subcommand("purge")
+	@CommandPermission("realestate.admin")
+	public static void perge(Player player)
+	{
+		if(RealEstate.instance.config.SaveInventory) {
+			AbandonedItems.purge_items(player);
+		}
+		else
+			Messages.sendMessage(player, RealEstate.instance.messages.msgErrorSavingDisabled);
+	}
 	
 	@Subcommand("cancel")
 	@Conditions("claimHasTransaction")
