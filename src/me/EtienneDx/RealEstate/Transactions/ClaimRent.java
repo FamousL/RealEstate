@@ -3,7 +3,6 @@ package me.EtienneDx.RealEstate.Transactions;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,9 +21,12 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import com.earth2me.essentials.User;
@@ -154,9 +156,12 @@ public class ClaimRent extends BoughtTransaction
 		{
 			if(sign.getBlock().getState() instanceof Sign)
 			{
-				Sign s = (Sign) sign.getBlock().getState();
-				s.setWaxed(true);
+				Sign thissign = (Sign) sign.getBlock().getState();
+				thissign.setWaxed(true);
+				SignSide s=thissign.getSide(Side.valueOf("FRONT"));
 				s.setLine(0, Messages.getMessage(RealEstate.instance.config.cfgSignsHeader, false));
+				
+				
 				s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceRent);
 				//s.setLine(2, owner != null ? Bukkit.getOfflinePlayer(owner).getName() : "SERVER");
 				String price_line = "";
@@ -191,7 +196,7 @@ public class ClaimRent extends BoughtTransaction
 					s.setLine(2, RealEstate.instance.config.cfgContainerRentLine);
 					s.setLine(3, price_line + " - " + period);
 				}
-				s.update(true);
+				thissign.update(true);
 			}
 			else
 			{
@@ -214,7 +219,8 @@ public class ClaimRent extends BoughtTransaction
 			}
 			else if(sign.getBlock().getState() instanceof Sign)
 			{
-				Sign s = (Sign) sign.getBlock().getState();
+				Sign thissign = (Sign) sign.getBlock().getState();
+				SignSide s=thissign.getSide(Side.valueOf("FRONT"));
 				s.setLine(0, ChatColor.GOLD + RealEstate.instance.config.cfgReplaceOngoingRent); //Changed the header to "[Rented]" so that it won't waste space on the next line and allow the name of the player to show underneath.
 				s.setLine(1, Utils.getSignString(Bukkit.getOfflinePlayer(buyer).getName()));//remove "Rented by"
 				s.setLine(2, "Time remaining : ");
@@ -223,7 +229,7 @@ public class ClaimRent extends BoughtTransaction
 				Duration timeRemaining = Duration.ofHours(24).minus(hours);
 				
 				s.setLine(3, Utils.getTime(daysLeft, timeRemaining, false));
-				s.update(true);
+				thissign.update(true);
 			}
 		}
 		return false;
@@ -235,16 +241,13 @@ public class ClaimRent extends BoughtTransaction
 			return;
 					
 		}
-		String item_owner=mybuyer;//uuid saved when we started the transaction
+		
 		//so now we need to scan through the entire claim, and find any inventory to save X.x
 		//get chunks within area, get inventories, check if inventory is within the bounds, then process.
 		List<Chunk> chunksToProcess=new ArrayList<Chunk>();
 		Location min=claim.getLesserBoundaryCorner();
 		Location max=claim.getGreaterBoundaryCorner();
 		World world=min.getWorld();
-		
-		List<Inventory> lifeboat=new ArrayList<Inventory>();
-		int invsize=0;
 		
 		for (double x=min.getX();x<max.getX();x+=16) {
 			for(double z=min.getZ();z<max.getZ();z+=16) 
@@ -260,6 +263,7 @@ public class ClaimRent extends BoughtTransaction
 			
 		}
 		//now we have all the chunks involved, now to find inventories...
+		List<Inventory> processed=new ArrayList<Inventory>();//we have seen these inventories, this is more important for things like double chests, which we will see twice
 		AbandonedItems item_saver=new AbandonedItems(mybuyer);
 		for(Chunk chunk:chunksToProcess)
 		{
@@ -269,63 +273,37 @@ public class ClaimRent extends BoughtTransaction
 				{
 					if (tileEntity.getZ()>min.getZ()&&tileEntity.getZ()<max.getZ()) 
 					{
-						try 
+						if(tileEntity instanceof InventoryHolder) 
 						{
-							if(tileEntity.getClass().getMethod("getInventory") != null) 
+							InventoryHolder inv=(InventoryHolder) tileEntity;
+							Inventory found_inv=inv.getInventory();
+							for(int i=0;i<processed.size();i++) 
 							{
-
-								Method method= tileEntity.getClass().getMethod("getInventory");
-
-								Inventory found_inventory=(Inventory) method.invoke(tileEntity, null);
-								for(ItemStack j : found_inventory.getStorageContents()) 
+								if(processed.get(i).equals(found_inv))
 								{
-									if(j !=null) {
-								
-										item_saver.add_item(j);
-									}
-									else
-									{
-										continue;
-									}
+									continue; //we found an inventory we already worked on.... next								
 								}
-								//blow away the container after we save everything
-								
-								Location inventoryloc=tileEntity.getLocation();
-								
-								world.setType(inventoryloc, Material.AIR);
 								
 							}
-						} 
-						catch (Exception e) 
-						{
-							// TODO Auto-generated catch block
-							//RealEstate.instance.log.info("");
-							//nothing to do here, we know some of these are not going to have this method, we don't care.
-
-							RealEstate.instance.log.info("exception raised: "+e.getMessage());
+							processed.add(found_inv);
+							for(ItemStack j:found_inv.getContents())
+							{
+								if(j != null)
+								{
+									item_saver.add_item(j);
+								}
+							}
+							Location inventoryloc=tileEntity.getLocation();
+							ItemStack breakthis=new ItemStack(tileEntity.getType(),1);
+							item_saver.add_item(breakthis);
+							world.setType(inventoryloc, Material.AIR);
 						}
+						
 					}
 				}
 			}
 		}
 		item_saver.save();
-		//ok, so now i have an array list of inventories, and how many stacks of items we have.... now what?
-		//well bukkit needs a size that is a factor of 9, so next highest factor of 9?
-		/*
-		 * while((invsize %9)!=0) {
-		 * RealEstate.instance.log.info("Inventory size was only "
-		 * +invsize+" not divisible by 9, incrementing"); invsize++; //increase invsize
-		 * until it is divisible by 9 } //move everything into one inventory Inventory
-		 * saved_inventory=Bukkit.createInventory(null, invsize); for (Inventory
-		 * passengers:lifeboat) { for(ItemStack j:passengers.getStorageContents()) {
-		 * RealEstate.instance.log.info("Moving item stack of "+j.getType());
-		 * saved_inventory.addItem(j);
-		 * 
-		 * } }
-		 */
-		
-		
-		
 		
 	}
 	public static void restore_rental(Claim claim)
@@ -362,11 +340,12 @@ public class ClaimRent extends BoughtTransaction
 													
 						
 						BlockType air=new BlockType("minecraft:air");//we want to capture all the air from the saved schematic, to empty out the space that used to be empty
-						BlockTypeMask mask= new BlockTypeMask(clipboard,air);//create a mask, specifying we want to keep just the air from the schematic			
+						BlockTypeMask mask_air= new BlockTypeMask(clipboard,air);//create a mask, specifying we want to keep just the air from the schematic
+						
 						Operation operation = new ClipboardHolder(clipboard)
 								.createPaste(editSession)
 								.to(BlockVector3.at(lesser.getX(), lesser.getWorld().getMinHeight(), lesser.getZ()))
-								.maskSource(mask)//ignore non-air blocks from the schematic.
+								.maskSource(mask_air)//ignore non-air blocks from the schematic.
 								.ignoreAirBlocks(false) //well that would be silly, we want the air
 				            	.build();
 				    	Operations.complete(operation);
@@ -437,7 +416,11 @@ public class ClaimRent extends BoughtTransaction
 			else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
         	{
         		User u = RealEstate.ess.getUser(this.buyer);
-				u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyer,
+				/*u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyer,
+						claimType,
+						location,
+						RealEstate.econ.format(price)));*/
+				u.sendMail(null,Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyer,
 						claimType,
 						location,
 						RealEstate.econ.format(price)));
@@ -456,7 +439,13 @@ public class ClaimRent extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.owner);
-					u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentOwner,
+					/*u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentOwner,
+							buyerPlayer.getName(),
+							claimType,
+							location,
+							RealEstate.econ.format(price)));*/
+	        		
+					u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentOwner,
 							buyerPlayer.getName(),
 							claimType,
 							location,
@@ -477,7 +466,12 @@ public class ClaimRent extends BoughtTransaction
 			else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
         	{
         		User u = RealEstate.ess.getUser(this.buyer);
-				u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyerCancelled,
+				/*u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyerCancelled,
+						claimType,
+						location,
+						RealEstate.econ.format(price)));*/
+        		
+				u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoRentPaymentBuyerCancelled,
 						claimType,
 						location,
 						RealEstate.econ.format(price)));
@@ -603,7 +597,12 @@ public class ClaimRent extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.owner);
-					u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerRented,
+					/*u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerRented,
+						player.getName(),
+						claimTypeDisplay,
+						RealEstate.econ.format(price),
+						location));*/
+					u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerRented,
 						player.getName(),
 						claimTypeDisplay,
 						RealEstate.econ.format(price),

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bouncycastle.util.Arrays;
 import org.bukkit.Location;
@@ -35,7 +36,7 @@ public class AbandonedItems extends YamlConfiguration
 					
 		}
 		owner=item_owner;
-		Saved_Items=new ArrayList<ItemStack>();
+		Saved_Items=new CopyOnWriteArrayList<ItemStack>();
 		String path= RealEstate.pluginDirPath + "/Abandoned_inventories/"+item_owner+".inventory";
 		file=new File(path);
 		if(file.exists())//user has stuff already saved, load it
@@ -48,45 +49,73 @@ public class AbandonedItems extends YamlConfiguration
 		return owner;
 		
 	}
+	public void set_items(List<ItemStack> new_set) 
+	{
+		Saved_Items=new_set;
+		if(Saved_Items.size()>0) 
+		{
+			save();
+		}
+		else
+		{
+			delete_save();
+		}
+		
+	}
 	public void add_item(ItemStack addme) 
 	{
+				
 		int remaining=addme.getAmount();
-		RealEstate.instance.log.info("Attempting to add: "+addme.getType()+" of stack amount "+addme.getAmount());
-		for(ItemStack a : Saved_Items) 
-		{
 		
+		//for(ItemStack a : current_items)
+		//	we want the last instance of any particular item stack, or 0 
+		int last_stack=-1;
+		
+		for(int i=0;i<Saved_Items.size();i++)
+		{
+			ItemStack a=Saved_Items.get(i);
+			if(a ==null) 
+			{
+				i++;
+				continue;
+			}
 			if(a.getType()==addme.getType()) 
 			{
-				RealEstate.instance.log.info("Found an existing stack, combining: "+a.getType()+" With existing size of "+a.getAmount());
-				int cursize=a.getAmount();
-				int maxamount=a.getMaxStackSize();
-				if(cursize<maxamount) //room to add more
-				{
-					RealEstate.instance.log.info("We went over the limit, adding what we can");
-					cursize+=addme.getAmount();
-					cursize=cursize>maxamount? maxamount:cursize;
-					remaining -= maxamount-a.getAmount();
-					a.setAmount(cursize);
-					
-					
-				}
+				last_stack=i;
 			}
-			if(remaining >0)//there is atleast one more to put in 
+		}
+		//at this point last_stack either points to the latest stack of items, which means we need to do some jiggling around, or it is -1 meaning no items of addme.type are in the array.
+		if(last_stack>=0) {
+			ItemStack a=Saved_Items.get(last_stack);
+			
+			int cursize=a.getAmount();
+			int maxamount=a.getMaxStackSize();
+			if(cursize<maxamount) //room to add more
 			{
-				RealEstate.instance.log.info("Remaining items: "+remaining+" adding remaining stack to saved items");
-				addme.setAmount(remaining);//just in case we removed some earlier 
-				Saved_Items.add(addme);
-				remaining=0;
-				
+				cursize+=addme.getAmount();
+				if(cursize>maxamount) 
+				{
+					cursize=maxamount;
+					remaining-=maxamount-a.getAmount();
+					addme.setAmount(remaining);
+					Saved_Items.add(addme);
+				}
+				a.setAmount(cursize);//reset the amount in the array;
 			}
+			else//cursize was *exactly* maxamount, so we just add the stack as-is.
+			{
+				Saved_Items.add(addme);
+			}
+		}
 			
-			
+		if(last_stack==-1) {
+			Saved_Items.add(addme);		
 		}
 		if(Saved_Items.size()==0)//first item being put in, heh
-		{
-			RealEstate.instance.log.info("Adding first item to the save queue");
+		{	
 			Saved_Items.add(addme);
 		}
+		
 		this.save();
 		
 	}

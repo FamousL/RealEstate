@@ -127,6 +127,7 @@ public class RealEstate extends JavaPlugin
         
         new REListener().registerEvents();
         new ClaimPermissionListener().registerEvents();
+        new PlayerItemReclaim().registerEvents();
         
         manager = new BukkitCommandManager(this);
         manager.enableUnstableAPI("help");

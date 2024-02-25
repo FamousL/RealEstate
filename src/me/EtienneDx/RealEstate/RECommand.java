@@ -54,8 +54,8 @@ public class RECommand extends BaseCommand
 	
 	@Subcommand("list")
 	@Description("Displays the list of all real estate offers currently existing")
-	@CommandCompletion("all|sell|rent|lease")
-	@Syntax("[all|sell|rent|lease] <page>")
+	@CommandCompletion("all|sell|rent|lease|reclaim")
+	@Syntax("[all|sell|rent|lease|reclaim] <page>")
 	public static void list(CommandSender sender, @Optional String type, @Default("1") int page)
 	{
 		Player player = null;
@@ -395,17 +395,20 @@ public class RECommand extends BaseCommand
 			}
 		}
 	}
-	@Subcommand("purge")
-	@CommandPermission("realestate.admin")
-	public static void perge(Player player)
+	@Subcommand("reclaim")
+	@CommandPermission("realestate.rent")
+	//@Syntax("<page>")
+	public static void reclaim(Player player)//, @Optional @Default("0") int page)
 	{
+		
 		if(RealEstate.instance.config.SaveInventory) {
-			AbandonedItems.purge_items(player);
+			//			AbandonedItems.purge_items(player);
+			PlayerItemReclaim.reclaimItems(player, 0);
 		}
 		else
 			Messages.sendMessage(player, RealEstate.instance.messages.msgErrorSavingDisabled);
 	}
-	
+
 	@Subcommand("cancel")
 	@Conditions("claimHasTransaction")
 	@CommandPermission("realestate.admin")
