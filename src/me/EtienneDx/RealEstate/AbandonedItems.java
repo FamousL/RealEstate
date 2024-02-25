@@ -3,14 +3,10 @@ package me.EtienneDx.RealEstate;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.bouncycastle.util.Arrays;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -154,7 +150,7 @@ public class AbandonedItems extends YamlConfiguration
         try {
 			c.save(file);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			//e.printStackTrace();
 			RealEstate.instance.log.info("Failed to save, got exception: "+e.getMessage());
 		}

@@ -18,6 +18,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.command.CommandSender;
 
 public class ClaimSell extends ClaimTransaction
@@ -37,8 +39,10 @@ public class ClaimSell extends ClaimTransaction
 	{
 		if(sign.getBlock().getState() instanceof Sign)
 		{
-			Sign s = (Sign) sign.getBlock().getState();
-			s.setWaxed(true);
+			Sign thissign = (Sign) sign.getBlock().getState();
+			SignSide s=thissign.getSide(Side.valueOf("FRONT"));
+
+			thissign.setWaxed(true);
 			s.setLine(0, Messages.getMessage(RealEstate.instance.config.cfgSignsHeader, false));
 			s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceSell);
 			s.setLine(2, owner != null ? Utils.getSignString(Bukkit.getOfflinePlayer(owner).getName()) : "SERVER");
@@ -64,7 +68,7 @@ public class ClaimSell extends ClaimTransaction
 					s.setLine(3, price + " " + RealEstate.econ.currencyNamePlural());
 				}
 			}
-			s.update(true);
+			thissign.update(true);
 		}
 		else
 		{
@@ -163,7 +167,8 @@ public class ClaimSell extends ClaimTransaction
                 	else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
                 	{
                 		User u = RealEstate.ess.getUser(owner);
-						u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerSold,
+						
+						u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerSold,
 								player.getName(),
 								claimTypeDisplay,
 								RealEstate.econ.format(price),

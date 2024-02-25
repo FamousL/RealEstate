@@ -11,6 +11,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.block.sign.SignSide;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -65,8 +67,10 @@ public class ClaimLease extends BoughtTransaction
 		{
 			if(sign.getBlock().getState() instanceof Sign)
 			{
-				Sign s = (Sign)sign.getBlock().getState();
-				s.setWaxed(true);
+				Sign thissign = (Sign)sign.getBlock().getState();
+				SignSide s=thissign.getSide(Side.valueOf("FRONT"));
+
+				thissign.setWaxed(true);
 				s.setLine(0, Messages.getMessage(RealEstate.instance.config.cfgSignsHeader, false));
 				s.setLine(1, ChatColor.DARK_GREEN + RealEstate.instance.config.cfgReplaceLease);
 				//s.setLine(2, owner != null ? Bukkit.getOfflinePlayer(owner).getName() : "SERVER");
@@ -94,7 +98,7 @@ public class ClaimLease extends BoughtTransaction
 					}
 				}
 				s.setLine(3, Utils.getTime(frequency, null, false));
-				s.update(true);
+				thissign.update(true);
 			}
 			else
 			{
@@ -148,7 +152,8 @@ public class ClaimLease extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.buyer);
-					u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyer, 
+					
+					u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyer, 
 							claimType,
 							location, 
 							RealEstate.econ.format(price), 
@@ -169,7 +174,8 @@ public class ClaimLease extends BoughtTransaction
 					else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 		        	{
 		        		User u = RealEstate.ess.getUser(this.owner);
-						u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwner,
+						
+						u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwner,
 								buyerPlayer.getName(),
 								claimType,
 								location,
@@ -190,7 +196,8 @@ public class ClaimLease extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.buyer);
-					u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyerFinal,
+					
+					u.sendMail(null,Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyerFinal,
 							claimType,
 							location,
 							RealEstate.econ.format(price)));
@@ -207,7 +214,8 @@ public class ClaimLease extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.owner);
-					u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwnerFinal,
+					
+					u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwnerFinal,
 							buyerPlayer.getName(),
 							claimType,
 							location,
@@ -253,7 +261,8 @@ public class ClaimLease extends BoughtTransaction
 			else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	    	{
 	    		User u = RealEstate.ess.getUser(this.buyer);
-				u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyerCancelled,
+				
+				u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentBuyerCancelled,
 						claimType,
 						location,
 						RealEstate.econ.format(price)));
@@ -269,7 +278,8 @@ public class ClaimLease extends BoughtTransaction
 			else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	    	{
 	    		User u = RealEstate.ess.getUser(this.owner);
-				u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwnerCancelled,
+				
+				u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimInfoLeasePaymentOwnerCancelled,
 						buyerPlayer.getName(),
 						claimType,
 						location,
@@ -391,12 +401,13 @@ public class ClaimLease extends BoughtTransaction
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(this.owner);
-	        		u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerLeaseStarted,
-						player.getName(),
-						claimTypeDisplay,
-						RealEstate.econ.format(price),
-						location,
-						paymentsLeft + ""));
+	        		
+	        		u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoClaimOwnerLeaseStarted,
+							player.getName(),
+							claimTypeDisplay,
+							RealEstate.econ.format(price),
+							location,
+							paymentsLeft + ""));
 	        	}
 			}
 			

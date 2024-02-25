@@ -259,7 +259,7 @@ public class RECommand extends BaseCommand
 				else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 	        	{
 	        		User u = RealEstate.ess.getUser(other);
-	        		u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferCreatedByOther, 
+	        		u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferCreatedByOther, 
 							player.getName(), claimType, RealEstate.econ.format(price), location));
 	        	}
 			}
@@ -301,7 +301,8 @@ public class RECommand extends BaseCommand
 		        	{
 		        		User u = RealEstate.ess.getUser(other);
 						
-		        		u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferAcceptedByOther,
+		        		
+		        		u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferAcceptedByOther,
 								player.getName(), claimType, RealEstate.econ.format(bt.exitOffer.price), location));
 		        	}
 				}
@@ -350,7 +351,8 @@ public class RECommand extends BaseCommand
 					else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 		        	{
 		        		User u = RealEstate.ess.getUser(other);
-		        		u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferRejectedByOther,
+		        		
+		        		u.sendMail(null,Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferRejectedByOther,
 								player.getName(), claimType, location));
 		        	}
 				}
@@ -384,7 +386,8 @@ public class RECommand extends BaseCommand
 					else if(RealEstate.instance.config.cfgMailOffline && RealEstate.ess != null)
 		        	{
 		        		User u = RealEstate.ess.getUser(other);
-		        		u.addMail(Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferCancelledByOther,
+		        		
+		        		u.sendMail(null, Messages.getMessage(RealEstate.instance.messages.msgInfoExitOfferCancelledByOther,
 								player.getName(), claimType, location));
 		        	}
 				}
