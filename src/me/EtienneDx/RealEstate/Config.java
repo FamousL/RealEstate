@@ -11,7 +11,7 @@ import me.EtienneDx.AnnotationConfig.AnnotationConfig;
 import me.EtienneDx.AnnotationConfig.ConfigField;
 import me.EtienneDx.AnnotationConfig.ConfigFile;
 
-@ConfigFile(header = "RealEstate wiki and newest versions are available at http://www.github.com/EtienneDx/RealEstate")
+@ConfigFile(header = "RealEstate wiki and newest versions are available at http://www.github.com/FamousL/RealEstate")
 public class Config extends AnnotationConfig
 {
     public PluginDescriptionFile pdf;
