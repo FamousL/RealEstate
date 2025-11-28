@@ -13,3 +13,5 @@ This plugin is dependent on GriefPrevention version 16.18 and up.
 GriefPrevention plugin can be found [here](https://github.com/TechFortress/GriefPrevention)
 
 This is just an update to work with 1.21, I am not the originator of most of the work in this plugin.
+
+Tested up to Minecraft version 1.21.10
